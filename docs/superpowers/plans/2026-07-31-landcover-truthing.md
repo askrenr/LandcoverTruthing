@@ -6,7 +6,11 @@
 
 **Architecture:** Static React frontend on GitHub Pages writing directly to Supabase Postgres via the public anon key, with row-level security as the only enforcement layer. Pure logic (coordinate parsing, CSV, validation, storage) lives in `src/lib/` as dependency-free modules that are unit-tested exhaustively; React components are thin shells over them. Stage 1 delivers a fully working local-storage-only app before any backend exists.
 
-**Tech Stack:** Vite 7, React 19, TypeScript 5, Leaflet 1.9 + react-leaflet 5, supabase-js 2, Vitest 3 + React Testing Library, jsdom.
+**Tech Stack:** Vite, React 19, TypeScript, Leaflet 1.9 + react-leaflet, supabase-js 2, Vitest + React Testing Library, jsdom.
+
+**Resolved versions (as installed in Task 1 — these are the actuals, not a target):** Node 26.0.0, Vite 8.2, TypeScript 7.0, Vitest 4.1, jsdom 30.0, React 19.2, @vitejs/plugin-react 6.0, @testing-library/react 16.3, @testing-library/jest-dom 7.0. The plan was drafted against older majors; `npm install` resolved newer ones. Do not "correct" a file to match an older major mentioned elsewhere in this plan.
+
+**Known environment workaround (Task 1, verified necessary):** Node 26 ships a default-on experimental global `localStorage` that is `undefined`, and Vitest 4's jsdom environment will not overwrite a global that already exists unless it is on an internal allowlist — which `localStorage`/`sessionStorage` are not. Node's broken stub therefore shadows jsdom's working implementation. `src/testSetup.ts` restores both from `globalThis.jsdom.window` and is consequently ~20 lines rather than the one-line import shown in Task 1's step. This was empirically confirmed: with the one-line version, `expect(localStorage).toBeDefined()` fails. Every task that touches storage depends on this shim. It is correct as written — do not revert it to match the Task 1 text.
 
 ## Global Constraints
 
