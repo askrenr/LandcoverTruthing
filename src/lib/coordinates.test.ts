@@ -153,6 +153,23 @@ describe('parseCoordinates — rejection', () => {
   it('rejects more than two coordinate components', () => {
     expect(parseCoordinates('34.5, -91.0, 12.0')).toBeNull()
   })
+
+  it('rejects two hemisphere letters that name the same axis (both N/S)', () => {
+    expect(parseCoordinates('34.5N, 45.0S')).toBeNull()
+  })
+
+  it('rejects two hemisphere letters that name the same axis (both E/W, same letter)', () => {
+    expect(parseCoordinates('91.0W, 45.0W')).toBeNull()
+  })
+
+  it('rejects two hemisphere letters that name the same axis (both E/W, opposite letters)', () => {
+    expect(parseCoordinates('91.0E, 45.0E')).toBeNull()
+  })
+
+  it('rejects more than two bare whitespace-separated numbers with no DMS indicator', () => {
+    expect(parseCoordinates('34 5 -91 0')).toBeNull()
+    expect(parseCoordinates('10 20 30 40')).toBeNull()
+  })
 })
 
 describe('formatCoordinates', () => {

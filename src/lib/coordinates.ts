@@ -50,7 +50,11 @@ function parseComponent(raw: string): Component | null {
 
   const [, lead, degStr, minStr, secStr, trail] = match
 
-  // A hemisphere on both sides is contradictory input, not a coordinate.
+  // A hemisphere letter on both sides (e.g. "N34.5S") is contradictory and is
+  // rejected here. Note this guard is NOT what rejects something like
+  // "34.5NS": there, the trailing capture group can only match one letter, so
+  // COMPONENT.exec fails to match at all and parseComponent returns null
+  // before this line is ever reached.
   if (lead && trail) return null
   const hemisphere = ((lead ?? trail)?.toUpperCase() ?? null) as Component['hemisphere']
 
@@ -103,12 +107,25 @@ function splitOnHemisphereOrSign(text: string): string[] {
   }
   const tokens = text.split(/\s+/).filter(Boolean)
   if (tokens.length === 2) return tokens
-  // Space-separated DMS: six tokens plus up to two hemisphere letters.
-  if (tokens.length % 2 === 0) {
+  // Space-separated DMS: six tokens plus up to two hemisphere letters. Only
+  // take this halving guess when something in the text actually marks it as
+  // DMS (a hemisphere letter or a degree/minute/second symbol) — a bare run
+  // of numbers with no such marker is ambiguous (e.g. "34 5 -91 0" could be
+  // read as one DMS pair or as two malformed decimal pairs) and is rejected
+  // by returning a token list whose length isn't 2, rather than guessed at.
+  const looksLikeDms = /[NSEW°'"]/i.test(text)
+  if (looksLikeDms && tokens.length % 2 === 0) {
     const half = tokens.length / 2
     return [tokens.slice(0, half).join(' '), tokens.slice(half).join(' ')]
   }
   return tokens
+}
+
+/** Which axis a hemisphere letter names, or null when it names neither. */
+function axisOf(hemisphere: Component['hemisphere']): 'latitude' | 'longitude' | null {
+  if (hemisphere === 'N' || hemisphere === 'S') return 'latitude'
+  if (hemisphere === 'E' || hemisphere === 'W') return 'longitude'
+  return null
 }
 
 export function parseCoordinates(
@@ -123,12 +140,19 @@ export function parseCoordinates(
   const second = parseComponent(rawParts[1])
   if (!first || !second) return null
 
-  // Hemisphere letters name the axis explicitly; otherwise assume lat, lng order.
+  // Hemisphere letters name the axis explicitly; otherwise assume lat, lng
+  // order. When BOTH components carry a hemisphere letter, they must name
+  // opposite axes (one of N/S and one of E/W) — two components naming the
+  // same axis (e.g. "34.5N, 45.0S") leave the other axis with no supplied
+  // value at all, so there is nothing to reorder into and the input is
+  // rejected rather than having a value invented for the missing axis.
+  const firstAxis = axisOf(first.hemisphere)
+  const secondAxis = axisOf(second.hemisphere)
+  if (firstAxis && secondAxis && firstAxis === secondAxis) return null
+
   let latComponent = first
   let lngComponent = second
-  const firstIsLongitude = first.hemisphere === 'E' || first.hemisphere === 'W'
-  const secondIsLatitude = second.hemisphere === 'N' || second.hemisphere === 'S'
-  if (firstIsLongitude || secondIsLatitude) {
+  if (firstAxis === 'longitude' || secondAxis === 'latitude') {
     latComponent = second
     lngComponent = first
   }
