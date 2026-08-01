@@ -2932,7 +2932,8 @@ describe('searchPlaces', () => {
       { display_name: 'Good', lat: '34.5', lon: '-91.55' },
       { display_name: 'Bad', lat: 'nonsense', lon: '-91.7' },
     ])
-    const results = await searchPlaces('x')
+    // Two characters minimum — `searchPlaces` short-circuits below MIN_QUERY_LENGTH.
+    const results = await searchPlaces('xy')
     expect(results).toHaveLength(1)
     expect(results[0].label).toBe('Good')
   })
