@@ -109,6 +109,38 @@ describe('point persistence', () => {
     localStorage.setItem('lct.points', JSON.stringify({ nope: true }))
     expect(loadPoints()).toEqual([])
   })
+
+  it('filters out a null element rather than crashing', () => {
+    localStorage.setItem('lct.points', JSON.stringify([null]))
+    expect(loadPoints()).toEqual([])
+  })
+
+  it('filters out a partial object missing fields the UI dereferences', () => {
+    localStorage.setItem('lct.points', JSON.stringify([{ id: 'x' }]))
+    expect(loadPoints()).toEqual([])
+  })
+
+  it('keeps a good point and drops a bad one from the same list', () => {
+    const good = makePoint({ id: 'good' })
+    localStorage.setItem('lct.points', JSON.stringify([good, null, { id: 'bad' }]))
+    expect(loadPoints()).toEqual([good])
+  })
+
+  it('does not filter out a point merely missing a non-essential field', () => {
+    const point = makePoint({ notes: undefined, gpsAccuracyM: undefined } as never)
+    localStorage.setItem('lct.points', JSON.stringify([point]))
+    const loaded = loadPoints()
+    expect(loaded).toHaveLength(1)
+    expect(loaded[0].id).toBe(point.id)
+  })
+
+  it('does not rewrite local storage when filtering on read', () => {
+    const good = makePoint({ id: 'good' })
+    const raw = JSON.stringify([good, null])
+    localStorage.setItem('lct.points', raw)
+    loadPoints()
+    expect(localStorage.getItem('lct.points')).toBe(raw)
+  })
 })
 
 describe('addPoint', () => {

@@ -2,7 +2,8 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
-import { loadPoints } from './lib/storage'
+import { loadPoints, saveContributor } from './lib/storage'
+import type { StoredPoint } from './types'
 
 vi.mock('./components/MapPanel', () => ({
   default: ({ onPlace }: { onPlace: (a: number, b: number, c: string, d: null) => void }) => (
@@ -114,6 +115,34 @@ describe('App — submitting points', () => {
     await submitPoint('corn', '2022')
     expect(loadPoints()).toHaveLength(2)
     expect(screen.getByText(/2 points/i)).toBeInTheDocument()
+  })
+})
+
+describe('App — malformed stored points', () => {
+  it('renders without throwing and shows only the valid point when storage has a null entry', () => {
+    saveContributor({ name: 'Ryan Askren', email: 'ryanaskren@gmail.com' })
+    const valid: StoredPoint = {
+      id: 'good-1',
+      createdAt: '2026-07-31T12:00:00.000Z',
+      updatedAt: '2026-07-31T12:00:00.000Z',
+      sessionToken: 'token-1',
+      contributorName: 'Ryan Askren',
+      contributorEmail: 'ryanaskren@gmail.com',
+      latitude: 34.5,
+      longitude: -91.0,
+      landcoverClass: 'rice',
+      classOther: null,
+      year: 2023,
+      floodable: 'yes',
+      confidence: 'certain',
+      notes: null,
+      placementMethod: 'map_click',
+      gpsAccuracyM: null,
+    }
+    localStorage.setItem('lct.points', JSON.stringify([null, valid]))
+
+    expect(() => render(<App />)).not.toThrow()
+    expect(screen.getByText(/1 point\b/i)).toBeInTheDocument()
   })
 })
 

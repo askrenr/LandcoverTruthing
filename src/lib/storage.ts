@@ -55,9 +55,33 @@ export function saveContributor(info: ContributorInfo): void {
   writeJson(CONTRIBUTOR_KEY, info)
 }
 
+/**
+ * Guards only the fields the render path actually dereferences without a
+ * null check (SessionList, MapPanel, CSV export). Deliberately permissive
+ * about everything else — a stricter check would silently drop points that
+ * are merely missing a field a future schema version adds.
+ */
+function isUsablePoint(value: unknown): value is StoredPoint {
+  if (!value || typeof value !== 'object') return false
+  const point = value as Record<string, unknown>
+  return (
+    typeof point.id === 'string' &&
+    point.id.length > 0 &&
+    Number.isFinite(point.latitude) &&
+    Number.isFinite(point.longitude) &&
+    typeof point.landcoverClass === 'string' &&
+    point.landcoverClass.length > 0 &&
+    Number.isFinite(point.year)
+  )
+}
+
 export function loadPoints(): StoredPoint[] {
   const stored = readJson<StoredPoint[]>(POINTS_KEY)
-  return Array.isArray(stored) ? stored : []
+  if (!Array.isArray(stored)) return []
+  // Filter on read only — never write the filtered list back. Malformed
+  // elements are left in local storage in case a future version can still
+  // interpret them; the database is the durable record either way.
+  return stored.filter(isUsablePoint)
 }
 
 export function savePoints(points: StoredPoint[]): void {
