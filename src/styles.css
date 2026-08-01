@@ -6,6 +6,11 @@
   --muted: #5c646e;
   --accent: #2b6cb0;
   --danger: #c53030;
+  --on-accent: #ffffff; /* button text on --accent background */
+  --on-danger: #ffffff; /* button text on --danger background */
+  --danger-text: #c53030; /* error message text (kept separate from --danger,
+    which also serves as .danger button background and must stay readable
+    with white text) */
   --sidebar-width: 380px;
   --breakpoint: 900px;
 }
@@ -87,7 +92,7 @@ button {
   font-size: 0.95rem;
   font-family: inherit;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--on-accent);
   background: var(--accent);
   border: none;
   border-radius: 6px;
@@ -96,7 +101,7 @@ button {
 }
 button:disabled { opacity: 0.5; cursor: not-allowed; }
 button.secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
-button.danger { background: var(--danger); }
+button.danger { background: var(--danger); color: var(--on-danger); }
 button.linklike {
   background: none;
   border: none;
@@ -114,7 +119,7 @@ button.linklike {
 .field-error, .form-blocked {
   margin: 0.4rem 0 0;
   font-size: 0.85rem;
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .app-status {
@@ -207,5 +212,12 @@ button.linklike {
     --text: #eceef1;
     --muted: #a2abb6;
     --accent: #5b9bd5;
+    --on-accent: #10141a; /* near-black; #5b9bd5 was lightened to work as
+      foreground text elsewhere, but as a button background it needs a dark
+      foreground to clear 4.5:1 (white-on-#5b9bd5 is only ~2.96:1) */
+    --danger-text: #fc8181; /* --danger itself (#c53030) doesn't change in
+      dark mode because it's also the .danger button background, which
+      already clears 4.5:1 with white text; but as text on the dark --bg,
+      #c53030 alone is only ~3.25:1, so error text gets its own lighter red */
   }
 }
