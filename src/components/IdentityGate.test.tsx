@@ -89,4 +89,38 @@ describe('IdentityGate', () => {
     await userEvent.click(screen.getByRole('button', { name: /cancel/i }))
     expect(onCancel).toHaveBeenCalled()
   })
+
+  it('marks an errored field aria-invalid and describes it via the visible error', async () => {
+    render(<IdentityGate initial={null} onSave={vi.fn()} />)
+    await userEvent.type(screen.getByLabelText(/name/i), 'Ryan')
+    await userEvent.type(screen.getByLabelText(/email/i), 'not-an-email')
+    await userEvent.click(screen.getByRole('button', { name: /start|save/i }))
+
+    const emailInput = screen.getByLabelText(/email/i)
+    const errorMessage = screen.getByText(/does not look like an email/i)
+
+    expect(emailInput).toHaveAttribute('aria-invalid', 'true')
+    expect(emailInput).toHaveAttribute('aria-describedby', errorMessage.id)
+    expect(emailInput).toHaveAccessibleDescription(/does not look like an email/i)
+  })
+
+  it('gives the error message role="alert" so it is announced', async () => {
+    render(<IdentityGate initial={null} onSave={vi.fn()} />)
+    await userEvent.type(screen.getByLabelText(/name/i), 'Ryan')
+    await userEvent.type(screen.getByLabelText(/email/i), 'not-an-email')
+    await userEvent.click(screen.getByRole('button', { name: /start|save/i }))
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/does not look like an email/i)
+  })
+
+  it('leaves a clean field free of aria-invalid and aria-describedby', () => {
+    render(<IdentityGate initial={null} onSave={vi.fn()} />)
+    const nameInput = screen.getByLabelText(/name/i)
+    const emailInput = screen.getByLabelText(/email/i)
+
+    expect(nameInput).not.toHaveAttribute('aria-invalid')
+    expect(nameInput).not.toHaveAttribute('aria-describedby')
+    expect(emailInput).not.toHaveAttribute('aria-invalid')
+    expect(emailInput).not.toHaveAttribute('aria-describedby')
+  })
 })

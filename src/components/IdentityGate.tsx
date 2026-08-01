@@ -48,12 +48,18 @@ export default function IdentityGate({ initial, onSave, onCancel }: Props) {
           type="text"
           autoComplete="name"
           value={name}
+          aria-invalid={errors.name ? true : undefined}
+          aria-describedby={errors.name ? 'contributor-name-error' : undefined}
           onChange={(event) => {
             setName(event.target.value)
             setErrors((prev) => ({ ...prev, name: '' }))
           }}
         />
-        {errors.name ? <p className="field-error">{errors.name}</p> : null}
+        {errors.name ? (
+          <p id="contributor-name-error" className="field-error" role="alert">
+            {errors.name}
+          </p>
+        ) : null}
 
         <label htmlFor="contributor-email">Your email</label>
         <input
@@ -61,12 +67,18 @@ export default function IdentityGate({ initial, onSave, onCancel }: Props) {
           type="email"
           autoComplete="email"
           value={email}
+          aria-invalid={errors.email ? true : undefined}
+          aria-describedby={errors.email ? 'contributor-email-error' : undefined}
           onChange={(event) => {
             setEmail(event.target.value)
             setErrors((prev) => ({ ...prev, email: '' }))
           }}
         />
-        {errors.email ? <p className="field-error">{errors.email}</p> : null}
+        {errors.email ? (
+          <p id="contributor-email-error" className="field-error" role="alert">
+            {errors.email}
+          </p>
+        ) : null}
 
         <div className="identity-actions">
           <button type="submit">{isEditing ? 'Save' : 'Start mapping'}</button>
