@@ -13,8 +13,18 @@ vi.mock('./components/MapPanel', () => ({
   ),
 }))
 
+const savePointRemote = vi.hoisted(() => vi.fn())
+const deletePointRemote = vi.hoisted(() => vi.fn())
+vi.mock('./lib/supabaseClient', () => ({
+  isBackendConfigured: () => true,
+  savePointRemote,
+  deletePointRemote,
+}))
+
 beforeEach(() => {
   localStorage.clear()
+  savePointRemote.mockReset().mockResolvedValue(undefined)
+  deletePointRemote.mockReset().mockResolvedValue(undefined)
 })
 
 async function signIn() {
@@ -176,5 +186,78 @@ describe('App — editing and deleting', () => {
     await userEvent.click(screen.getByRole('button', { name: /^delete$/i }))
     await userEvent.click(screen.getByRole('button', { name: /confirm delete/i }))
     expect(loadPoints()).toHaveLength(0)
+  })
+})
+
+describe('App — backend sync', () => {
+  it('sends a submitted point to the database', async () => {
+    render(<App />)
+    await signIn()
+    await submitPoint('rice', '2023')
+    expect(savePointRemote).toHaveBeenCalledTimes(1)
+    expect(savePointRemote.mock.calls[0][0]).toMatchObject({
+      landcoverClass: 'rice',
+      year: 2023,
+    })
+  })
+
+  it('does not store the point locally when the database write fails', async () => {
+    savePointRemote.mockRejectedValue(new Error('Your point could not be saved: offline'))
+    render(<App />)
+    await signIn()
+    await submitPoint('rice', '2023')
+    expect(loadPoints()).toHaveLength(0)
+  })
+
+  it('shows the failure and keeps the form filled so the contributor can retry', async () => {
+    savePointRemote.mockRejectedValue(new Error('Your point could not be saved: offline'))
+    render(<App />)
+    await signIn()
+    await submitPoint('rice', '2023')
+    expect(screen.getByText(/could not be saved/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/landcover/i)).toHaveValue('rice')
+  })
+
+  it('succeeds on retry after a transient failure', async () => {
+    savePointRemote
+      .mockRejectedValueOnce(new Error('Your point could not be saved: offline'))
+      .mockResolvedValue(undefined)
+    render(<App />)
+    await signIn()
+    await submitPoint('rice', '2023')
+    await userEvent.click(screen.getByRole('button', { name: /submit point/i }))
+    expect(loadPoints()).toHaveLength(1)
+  })
+
+  it('sends an edit to the database', async () => {
+    render(<App />)
+    await signIn()
+    await submitPoint('rice', '2023')
+    await userEvent.click(screen.getByRole('button', { name: /^edit$/i }))
+    await userEvent.selectOptions(screen.getByLabelText(/landcover/i), 'corn')
+    await userEvent.click(screen.getByRole('button', { name: /save changes/i }))
+    expect(savePointRemote).toHaveBeenCalledTimes(2)
+    expect(savePointRemote.mock.calls[1][0]).toMatchObject({ landcoverClass: 'corn' })
+  })
+
+  it('sends a delete to the database', async () => {
+    render(<App />)
+    await signIn()
+    await submitPoint('rice', '2023')
+    const id = loadPoints()[0].id
+    await userEvent.click(screen.getByRole('button', { name: /^delete$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /confirm delete/i }))
+    expect(deletePointRemote).toHaveBeenCalledWith(id)
+  })
+
+  it('keeps the point locally when the remote delete fails', async () => {
+    deletePointRemote.mockRejectedValue(new Error('That point could not be deleted: offline'))
+    render(<App />)
+    await signIn()
+    await submitPoint('rice', '2023')
+    await userEvent.click(screen.getByRole('button', { name: /^delete$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /confirm delete/i }))
+    expect(loadPoints()).toHaveLength(1)
+    expect(screen.getByText(/could not be deleted/i)).toBeInTheDocument()
   })
 })
