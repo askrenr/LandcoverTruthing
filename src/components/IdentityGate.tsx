@@ -34,8 +34,9 @@ export default function IdentityGate({ initial, onSave, onCancel }: Props) {
         <h1>Landcover Truthing</h1>
         <p>
           Help build a training dataset for mapping waterfowl habitat. Drop a pin on a
-          field you know, tell us what was planted there and in what year, and submit.
-          Only fields you personally know about — no guessing from imagery.
+          spot you know, tell us what was growing there and in what year, and submit.
+          Crops and natural wetland vegetation both count. Only places you personally
+          know about — no guessing from imagery.
         </p>
         <p className="identity-privacy">
           Your name and email are stored with each point so we can follow up on

@@ -87,7 +87,12 @@ export default function PointForm({
         </>
       ) : null}
 
-      <label htmlFor="point-year">Year</label>
+      {/*
+        "observed" rather than "planted": the natural wetland vegetation classes
+        (willow, buttonbush, floating leaf, persistent emergent) were never
+        planted in a given year, so a planting-year framing has no answer there.
+      */}
+      <label htmlFor="point-year">Year observed</label>
       <select
         id="point-year"
         value={draft.year === null ? '' : String(draft.year)}

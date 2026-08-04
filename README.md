@@ -3,8 +3,8 @@
 Collects ground-truth landcover labels from people who personally know the ground,
 as training data for remote sensing classification of waterfowl habitat.
 
-A contributor opens the link, drops a pin on a field they know, picks what was
-planted there and in what year, and submits. Points pool into a Supabase table
+A contributor opens the link, drops a pin on a spot they know, picks what was
+growing there and in what year, and submits. Points pool into a Supabase table
 that the project owner exports as CSV.
 
 **Intended URL once deployed:** https://askrenr.github.io/LandcoverTruthing/ (not live yet — see Deployment below)
