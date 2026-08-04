@@ -14,6 +14,11 @@ export const LANDCOVER_CLASSES = [
   'millet',
   'milo',
   'sunflowers',
+  // Natural wetland vegetation, as distinct from the planted classes above.
+  'floating leaf',
+  'buttonbush',
+  'willow',
+  'persistent emergent',
   'other',
 ] as const
 

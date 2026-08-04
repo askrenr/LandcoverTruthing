@@ -29,9 +29,14 @@ create table if not exists public.landcover_points (
   constraint contributor_email_shape
     check (contributor_email ~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$'),
 
+  -- Adding a class here also needs an ALTER against any live database: the
+  -- create-table-if-not-exists above is a no-op once the table exists, so
+  -- re-running this file will not widen an existing constraint.
   constraint landcover_class_allowed check (landcover_class in (
     'moist-soil', 'corn/dirty', 'rice/dirty', 'other ag/dirty',
-    'corn', 'rice', 'millet', 'milo', 'sunflowers', 'other'
+    'corn', 'rice', 'millet', 'milo', 'sunflowers',
+    'floating leaf', 'buttonbush', 'willow', 'persistent emergent',
+    'other'
   )),
 
   -- Free text is required for 'other' and forbidden otherwise, so the column

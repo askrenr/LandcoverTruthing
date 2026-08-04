@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import type { PointDraft } from '../types'
-import { currentYear } from '../config'
+import { LANDCOVER_CLASSES, currentYear } from '../config'
 import PointForm from './PointForm'
 
 function makeDraft(overrides: Partial<PointDraft> = {}): PointDraft {
@@ -66,10 +66,13 @@ describe('PointForm — fields', () => {
     expect(screen.getByLabelText(/year/i)).toHaveValue('')
   })
 
-  it('lists all ten classes plus the placeholder', () => {
+  // Derived from the config rather than hardcoded: config.test.ts already pins
+  // the exact class list, so duplicating the count here only adds a second
+  // place to edit every time a class is added.
+  it('lists every configured class plus the placeholder', () => {
     renderForm(makeDraft())
     const select = screen.getByLabelText(/landcover/i)
-    expect(select.querySelectorAll('option')).toHaveLength(11)
+    expect(select.querySelectorAll('option')).toHaveLength(LANDCOVER_CLASSES.length + 1)
   })
 
   it('lists years newest first starting at the current year', () => {

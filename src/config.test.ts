@@ -10,7 +10,7 @@ import {
 } from './config'
 
 describe('config', () => {
-  it('lists the ten landcover classes in the agreed order', () => {
+  it('lists the fourteen landcover classes in the agreed order', () => {
     expect(LANDCOVER_CLASSES).toEqual([
       'moist-soil',
       'corn/dirty',
@@ -21,6 +21,10 @@ describe('config', () => {
       'millet',
       'milo',
       'sunflowers',
+      'floating leaf',
+      'buttonbush',
+      'willow',
+      'persistent emergent',
       'other',
     ])
   })

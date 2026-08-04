@@ -15,8 +15,13 @@ See [`docs/superpowers/specs/2026-07-30-landcover-truthing-design.md`](docs/supe
 
 ## Landcover classes
 
-`moist-soil`, `corn/dirty`, `rice/dirty`, `other ag/dirty`, `corn`, `rice`,
-`millet`, `milo`, `sunflowers`, `other` (free text).
+Planted: `moist-soil`, `corn/dirty`, `rice/dirty`, `other ag/dirty`, `corn`,
+`rice`, `millet`, `milo`, `sunflowers`.
+
+Natural wetland vegetation: `floating leaf`, `buttonbush`, `willow`,
+`persistent emergent`.
+
+Plus `other` (free text).
 
 "dirty" means the crop was left with a weedy or volunteer understory rather than
 clean-farmed. `floodable` records whether the ground *can* be flooded — the
