@@ -13,6 +13,7 @@ const point: StoredPoint = {
   longitude: -91.0,
   landcoverClass: 'rice/dirty',
   classOther: null,
+  harvested: 'yes',
   year: 2023,
   floodable: 'yes',
   confidence: 'certain',
@@ -34,6 +35,7 @@ describe('toRow', () => {
       longitude: -91.0,
       landcover_class: 'rice/dirty',
       class_other: null,
+      harvested: 'yes',
       year: 2023,
       floodable: 'yes',
       confidence: 'certain',
@@ -61,6 +63,12 @@ describe('fromRow', () => {
     const result = fromRow({ ...toRow(point), notes: null, gps_accuracy_m: null })
     expect(result.notes).toBeNull()
     expect(result.gpsAccuracyM).toBeNull()
+  })
+
+  it('reads a row predating the harvested column as null, not undefined', () => {
+    const row = toRow(point)
+    delete row.harvested
+    expect(fromRow(row).harvested).toBeNull()
   })
 
   it('preserves a gps accuracy value when present', () => {

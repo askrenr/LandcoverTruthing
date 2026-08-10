@@ -24,6 +24,7 @@ function makePoint(overrides: Partial<StoredPoint> = {}): StoredPoint {
     longitude: -91.0,
     landcoverClass: 'rice',
     classOther: null,
+    harvested: 'unknown',
     year: 2023,
     floodable: 'yes',
     confidence: 'certain',

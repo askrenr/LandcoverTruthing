@@ -9,6 +9,7 @@ function makeDraft(overrides: Partial<PointDraft> = {}): PointDraft {
     longitude: -91.0,
     landcoverClass: 'rice',
     classOther: '',
+    harvested: 'unknown',
     year: 2023,
     floodable: 'unknown',
     confidence: 'certain',

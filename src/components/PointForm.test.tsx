@@ -11,6 +11,7 @@ function makeDraft(overrides: Partial<PointDraft> = {}): PointDraft {
     longitude: -91.0,
     landcoverClass: null,
     classOther: '',
+    harvested: 'unknown',
     year: null,
     floodable: 'unknown',
     confidence: 'certain',
@@ -109,6 +110,75 @@ describe('PointForm — the "other" free-text box', () => {
   it('appears when the class is "other"', () => {
     renderForm(makeDraft({ landcoverClass: 'other' }))
     expect(screen.getByLabelText(/describe/i)).toBeInTheDocument()
+  })
+})
+
+describe('PointForm — the harvested question', () => {
+  it('is absent until a class is chosen', () => {
+    renderForm(makeDraft())
+    expect(screen.queryByLabelText(/harvested/i)).not.toBeInTheDocument()
+  })
+
+  it('appears for a clean crop', () => {
+    renderForm(makeDraft({ landcoverClass: 'corn' }))
+    expect(screen.getByLabelText(/harvested/i)).toBeInTheDocument()
+  })
+
+  it('appears for a dirty crop', () => {
+    renderForm(makeDraft({ landcoverClass: 'rice/dirty' }))
+    expect(screen.getByLabelText(/harvested/i)).toBeInTheDocument()
+  })
+
+  // moist-soil is managed for waterfowl, not taken off the field.
+  it('is absent for moist-soil', () => {
+    renderForm(makeDraft({ landcoverClass: 'moist-soil' }))
+    expect(screen.queryByLabelText(/harvested/i)).not.toBeInTheDocument()
+  })
+
+  it('is absent for natural wetland vegetation', () => {
+    renderForm(makeDraft({ landcoverClass: 'buttonbush' }))
+    expect(screen.queryByLabelText(/harvested/i)).not.toBeInTheDocument()
+  })
+
+  it('is absent for "other"', () => {
+    renderForm(makeDraft({ landcoverClass: 'other' }))
+    expect(screen.queryByLabelText(/harvested/i)).not.toBeInTheDocument()
+  })
+
+  it('defaults to unknown', () => {
+    renderForm(makeDraft({ landcoverClass: 'corn' }))
+    expect(screen.getByLabelText(/harvested/i)).toHaveValue('unknown')
+  })
+
+  it('reports a harvest answer to the parent', async () => {
+    const { onChange } = renderForm(makeDraft({ landcoverClass: 'corn' }))
+    await userEvent.selectOptions(screen.getByLabelText(/harvested/i), 'yes')
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ harvested: 'yes' }))
+  })
+
+  it('does not block submit while left at unknown', () => {
+    renderForm(makeDraft({ landcoverClass: 'corn', year: 2023 }))
+    expect(screen.getByRole('button', { name: /submit|save/i })).toBeEnabled()
+  })
+
+  it('resets a stale harvest answer when the class becomes non-ag', async () => {
+    const { onChange } = renderForm(
+      makeDraft({ landcoverClass: 'corn', harvested: 'yes' }),
+    )
+    await userEvent.selectOptions(screen.getByLabelText(/landcover/i), 'buttonbush')
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ landcoverClass: 'buttonbush', harvested: 'unknown' }),
+    )
+  })
+
+  it('keeps the harvest answer when switching between two ag classes', async () => {
+    const { onChange } = renderForm(
+      makeDraft({ landcoverClass: 'corn', harvested: 'no' }),
+    )
+    await userEvent.selectOptions(screen.getByLabelText(/landcover/i), 'milo')
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ landcoverClass: 'milo', harvested: 'no' }),
+    )
   })
 })
 

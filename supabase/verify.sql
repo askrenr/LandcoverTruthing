@@ -65,6 +65,65 @@ begin
   if not ok then raise exception 'FAIL: stale class_other was accepted'; end if;
   raise notice 'PASS: stale class_other rejected';
 
+  -- A harvest answer on an ag class is accepted.
+  insert into public.landcover_points (
+    session_token, contributor_name, contributor_email,
+    latitude, longitude, landcover_class, harvested, year,
+    floodable, confidence, placement_method
+  ) values (
+    token, 'Verify Script', 'verify@example.com',
+    34.5, -91.0, 'corn', 'yes', 2023, 'unknown', 'certain', 'map_click'
+  );
+  raise notice 'PASS: harvested accepted on an ag class';
+
+  -- A harvest answer on a class that cannot be harvested is rejected.
+  ok := false;
+  begin
+    insert into public.landcover_points (
+      session_token, contributor_name, contributor_email,
+      latitude, longitude, landcover_class, harvested, year,
+      floodable, confidence, placement_method
+    ) values (
+      token, 'Verify Script', 'verify@example.com',
+      34.5, -91.0, 'buttonbush', 'yes', 2023, 'unknown', 'certain', 'map_click'
+    );
+  exception when check_violation then ok := true;
+  end;
+  if not ok then raise exception 'FAIL: harvested on a non-ag class was accepted'; end if;
+  raise notice 'PASS: harvested on a non-ag class rejected';
+
+  -- moist-soil is managed, not harvested, so it takes no harvest answer either.
+  ok := false;
+  begin
+    insert into public.landcover_points (
+      session_token, contributor_name, contributor_email,
+      latitude, longitude, landcover_class, harvested, year,
+      floodable, confidence, placement_method
+    ) values (
+      token, 'Verify Script', 'verify@example.com',
+      34.5, -91.0, 'moist-soil', 'no', 2023, 'unknown', 'certain', 'map_click'
+    );
+  exception when check_violation then ok := true;
+  end;
+  if not ok then raise exception 'FAIL: harvested on moist-soil was accepted'; end if;
+  raise notice 'PASS: harvested on moist-soil rejected';
+
+  -- An unrecognized harvest value is rejected.
+  ok := false;
+  begin
+    insert into public.landcover_points (
+      session_token, contributor_name, contributor_email,
+      latitude, longitude, landcover_class, harvested, year,
+      floodable, confidence, placement_method
+    ) values (
+      token, 'Verify Script', 'verify@example.com',
+      34.5, -91.0, 'corn', 'maybe', 2023, 'unknown', 'certain', 'map_click'
+    );
+  exception when check_violation then ok := true;
+  end;
+  if not ok then raise exception 'FAIL: bad harvested value was accepted'; end if;
+  raise notice 'PASS: unknown harvested value rejected';
+
   -- Year below the 2020 floor is rejected.
   ok := false;
   begin

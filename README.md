@@ -7,6 +7,11 @@ A contributor opens the link, drops a pin on a spot they know, picks what was
 growing there and in what year, and submits. Points pool into a Supabase table
 that the project owner exports as CSV.
 
+The app asks for location as soon as the contributor is known, so on a phone in
+the field the pin lands where they are standing without a single tap. Refusing
+the prompt costs nothing — tapping the map still works, as do the coordinate box
+and place search at the bottom of the panel.
+
 **Intended URL once deployed:** https://askrenr.github.io/LandcoverTruthing/ (not live yet — see Deployment below)
 
 ## Design
@@ -29,6 +34,19 @@ infrastructure — not whether it was flooded when observed.
 
 Years run from 2020 to the current year.
 
+## Harvested
+
+The eight planted-crop classes — `corn/dirty`, `rice/dirty`, `other ag/dirty`,
+`corn`, `rice`, `millet`, `milo`, `sunflowers` — also ask whether the crop was
+harvested (`yes` / `no` / `unknown`). Every other class stores `harvested` as
+null: `moist-soil` is managed for waterfowl rather than taken off the field, the
+natural wetland classes were never planted, and `other` is free text.
+
+Null therefore means two things that are worth telling apart in analysis: the
+class cannot be harvested, or the point was recorded before this field existed
+(anything submitted before 2026-08-09). A contributor who was asked and did not
+know is stored as `unknown`, not null.
+
 ## Local development
 
 ```bash
@@ -47,6 +65,16 @@ message. Everything else works.
 `supabase/schema.sql` creates the table, constraints, and row-level security
 policies. Run it in the Supabase SQL editor, then run `supabase/verify.sql`,
 which asserts each constraint rejects what it should and cleans up after itself.
+
+**On an existing database, schema.sql will not add a new column.** Its
+`create table if not exists` is a no-op once the table is there, so every schema
+change also ships as a file in `supabase/migrations/`, to be run by hand in the
+SQL editor.
+
+**Run `migrations/2026-08-09-add-harvested.sql` before pushing this version.**
+Pushing to `main` deploys immediately, and the client sends the `harvested` key
+on *every* point, including the classes that store it as null — so until the
+column exists, PostgREST rejects every submission, not just the crop ones.
 
 Security model: the anon key is public by design and ships in the JS bundle.
 Row-level security confines each browser to rows matching its `session_token`,
@@ -81,8 +109,7 @@ Pushing to `main` builds and deploys to GitHub Pages via
 `.github/workflows/deploy.yml`. The Supabase URL and anon key come from
 repository secrets `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
 
-**Status:** the `askrenr/LandcoverTruthing` GitHub repo has not been created yet
-and Pages has not been enabled. The workflow file above is ready to go, but
-creating the repo, setting the build secrets, enabling Pages, and pushing are
-deliberately left for the project owner to do by hand (see the task-14 brief,
-steps 5–9) rather than performed automatically here.
+The repo exists and the workflow is in place. A schema change is the one thing
+that does not ride along with a push: run the outstanding file in
+`supabase/migrations/` first, then push, or the newly deployed client writes
+against a column the database does not have yet.

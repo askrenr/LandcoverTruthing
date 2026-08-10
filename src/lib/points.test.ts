@@ -22,6 +22,10 @@ describe('emptyDraft', () => {
     expect(draft.confidence).toBe('certain')
   })
 
+  it('defaults harvested to unknown', () => {
+    expect(emptyDraft(34.5, -91.0, 'map_click', null).harvested).toBe('unknown')
+  })
+
   it('records the placement method and gps accuracy', () => {
     const draft = emptyDraft(34.5, -91.0, 'device_gps', 4.7)
     expect(draft.placementMethod).toBe('device_gps')
@@ -64,6 +68,21 @@ describe('draftToStoredPoint', () => {
     expect(draftToStoredPoint(draft, contributor, 't', 'i', NOW).classOther).toBe(
       'buckwheat',
     )
+  })
+
+  it('keeps the harvest answer for an ag class', () => {
+    const draft = makeDraft({ landcoverClass: 'corn', harvested: 'yes', year: 2023 })
+    expect(draftToStoredPoint(draft, contributor, 't', 'i', NOW).harvested).toBe('yes')
+  })
+
+  it('nulls harvested for a non-ag class, matching the DB constraint', () => {
+    const draft = makeDraft({ landcoverClass: 'buttonbush', harvested: 'yes', year: 2023 })
+    expect(draftToStoredPoint(draft, contributor, 't', 'i', NOW).harvested).toBeNull()
+  })
+
+  it('nulls harvested for moist-soil, which is managed rather than harvested', () => {
+    const draft = makeDraft({ landcoverClass: 'moist-soil', harvested: 'no', year: 2023 })
+    expect(draftToStoredPoint(draft, contributor, 't', 'i', NOW).harvested).toBeNull()
   })
 
   it('nulls empty notes rather than storing an empty string', () => {
@@ -110,6 +129,18 @@ describe('storedPointToDraft', () => {
     expect(draft.landcoverClass).toBe('other')
     expect(draft.classOther).toBe('buckwheat')
     expect(draft.year).toBe(2023)
+  })
+
+  it('turns a null harvested back into unknown so the select has a value', () => {
+    const point = draftToStoredPoint(
+      makeDraft({ landcoverClass: 'buttonbush', year: 2023 }),
+      contributor,
+      't',
+      'i',
+      NOW,
+    )
+    expect(point.harvested).toBeNull()
+    expect(storedPointToDraft(point).harvested).toBe('unknown')
   })
 
   it('turns null class_other and notes back into empty strings for the form', () => {

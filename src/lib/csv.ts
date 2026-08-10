@@ -19,6 +19,7 @@ export const CSV_COLUMNS = [
   'longitude',
   'landcover_class',
   'class_other',
+  'harvested',
   'year',
   'floodable',
   'confidence',

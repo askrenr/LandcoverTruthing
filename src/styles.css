@@ -133,11 +133,12 @@ button.linklike {
 .placement-tools > button { width: 100%; }
 .attribution { font-size: 0.75rem; color: var(--muted); margin: 0.3rem 0 0; }
 
-.point-form, .session-list {
+.point-form, .placement-extras, .session-list {
   margin-top: 1.2rem;
   padding-top: 1.2rem;
   border-top: 1px solid var(--border);
 }
+.placement-extras h2 { font-size: 1rem; margin: 0; }
 .point-coordinates { font-family: ui-monospace, "SF Mono", monospace; font-size: 0.9rem; margin: 0; }
 .point-form-actions, .identity-actions, .session-point-actions {
   display: flex;

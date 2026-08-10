@@ -1,4 +1,4 @@
-import { OTHER_CLASS } from '../config'
+import { OTHER_CLASS, isAgClass } from '../config'
 import type {
   ContributorInfo,
   LandcoverClass,
@@ -24,6 +24,7 @@ export function emptyDraft(
     longitude,
     landcoverClass: null,
     classOther: '',
+    harvested: 'unknown',
     year: null,
     floodable: 'unknown',
     confidence: 'certain',
@@ -53,6 +54,7 @@ export function draftToStoredPoint(
     landcoverClass: draft.landcoverClass as LandcoverClass,
     classOther:
       draft.landcoverClass === OTHER_CLASS ? draft.classOther.trim() || null : null,
+    harvested: isAgClass(draft.landcoverClass) ? draft.harvested : null,
     year: draft.year as number,
     floodable: draft.floodable,
     confidence: draft.confidence,
@@ -68,6 +70,7 @@ export function storedPointToDraft(point: StoredPoint): PointDraft {
     longitude: point.longitude,
     landcoverClass: point.landcoverClass,
     classOther: point.classOther ?? '',
+    harvested: point.harvested ?? 'unknown',
     year: point.year,
     floodable: point.floodable,
     confidence: point.confidence,

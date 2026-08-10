@@ -14,6 +14,7 @@ function makePoint(overrides: Partial<StoredPoint> = {}): StoredPoint {
     longitude: -91.0,
     landcoverClass: 'rice',
     classOther: null,
+    harvested: 'yes',
     year: 2023,
     floodable: 'yes',
     confidence: 'certain',
@@ -33,6 +34,10 @@ describe('CSV_COLUMNS', () => {
     expect(CSV_COLUMNS).toContain('landcover_class')
     expect(CSV_COLUMNS).toContain('gps_accuracy_m')
     expect(CSV_COLUMNS).toContain('placement_method')
+  })
+
+  it('includes the harvested column', () => {
+    expect(CSV_COLUMNS).toContain('harvested')
   })
 })
 

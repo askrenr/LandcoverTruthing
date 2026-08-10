@@ -1,6 +1,6 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { loadPoints, saveContributor } from './lib/storage'
 import type { StoredPoint } from './types'
@@ -128,6 +128,145 @@ describe('App — submitting points', () => {
   })
 })
 
+describe('App — asking for location up front', () => {
+  // jsdom has no geolocation at all, so every other test in this file exercises
+  // the unsupported-browser path. This block installs one and removes it again.
+  const getCurrentPosition = vi.fn()
+
+  beforeEach(() => {
+    getCurrentPosition.mockReset()
+    Object.defineProperty(navigator, 'geolocation', {
+      value: { getCurrentPosition },
+      configurable: true,
+    })
+  })
+
+  afterEach(() => {
+    Reflect.deleteProperty(navigator, 'geolocation')
+  })
+
+  function locateAt(latitude: number, longitude: number, accuracy = 5) {
+    getCurrentPosition.mockImplementation((success: PositionCallback) =>
+      success({ coords: { latitude, longitude, accuracy } } as GeolocationPosition),
+    )
+  }
+
+  it('does not ask while the identity gate is still up', () => {
+    render(<App />)
+    expect(getCurrentPosition).not.toHaveBeenCalled()
+  })
+
+  it('asks as soon as the contributor is known', async () => {
+    render(<App />)
+    await signIn()
+    expect(getCurrentPosition).toHaveBeenCalledTimes(1)
+  })
+
+  it('asks on a return visit without waiting for a tap', async () => {
+    saveContributor({ name: 'Ryan Askren', email: 'ryanaskren@gmail.com' })
+    render(<App />)
+    await waitFor(() => expect(getCurrentPosition).toHaveBeenCalledTimes(1))
+  })
+
+  it('drops the pin where the contributor is standing', async () => {
+    locateAt(34.7, -91.2)
+    render(<App />)
+    await signIn()
+    await waitFor(() =>
+      expect(screen.getByText(/34\.700000, -91\.200000/)).toBeInTheDocument(),
+    )
+  })
+
+  it('records the auto-placed point as device GPS with its accuracy', async () => {
+    locateAt(34.7, -91.2, 4.7)
+    render(<App />)
+    await signIn()
+    await userEvent.selectOptions(screen.getByLabelText(/landcover/i), 'rice')
+    await userEvent.selectOptions(screen.getByLabelText(/year/i), '2023')
+    await userEvent.click(screen.getByRole('button', { name: /submit point/i }))
+
+    const stored = loadPoints()
+    expect(stored[0].placementMethod).toBe('device_gps')
+    expect(stored[0].gpsAccuracyM).toBe(4.7)
+  })
+
+  // A fresh prompt after every submitted point would fight a contributor who
+  // is working a list of fields from an armchair rather than standing in them.
+  it('asks only once per load, not again after a point is submitted', async () => {
+    locateAt(34.7, -91.2)
+    render(<App />)
+    await signIn()
+    await userEvent.selectOptions(screen.getByLabelText(/landcover/i), 'rice')
+    await userEvent.selectOptions(screen.getByLabelText(/year/i), '2023')
+    await userEvent.click(screen.getByRole('button', { name: /submit point/i }))
+    expect(getCurrentPosition).toHaveBeenCalledTimes(1)
+  })
+
+  it('explains the fallback when location is refused', async () => {
+    getCurrentPosition.mockImplementation(
+      (_success: PositionCallback, failure: PositionErrorCallback) =>
+        failure({ code: 1, message: 'denied' } as GeolocationPositionError),
+    )
+    render(<App />)
+    await signIn()
+    await waitFor(() =>
+      expect(screen.getByText(/tap the map to place a point instead/i)).toBeInTheDocument(),
+    )
+  })
+
+  it('still offers the manual button after refusing', async () => {
+    getCurrentPosition.mockImplementation(
+      (_success: PositionCallback, failure: PositionErrorCallback) =>
+        failure({ code: 1, message: 'denied' } as GeolocationPositionError),
+    )
+    render(<App />)
+    await signIn()
+    await userEvent.click(screen.getByRole('button', { name: /use my location/i }))
+    expect(getCurrentPosition).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('App — sidebar order for one-handed phone entry', () => {
+  function isBefore(first: Element, second: Element) {
+    return Boolean(
+      first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING,
+    )
+  }
+
+  it('keeps "Use my location" above the questions', async () => {
+    render(<App />)
+    await signIn()
+    await userEvent.click(screen.getByRole('button', { name: /simulate map click/i }))
+    expect(
+      isBefore(
+        screen.getByRole('button', { name: /use my location/i }),
+        screen.getByLabelText(/landcover/i),
+      ),
+    ).toBe(true)
+  })
+
+  it('puts coordinates and place search below the last question', async () => {
+    render(<App />)
+    await signIn()
+    await userEvent.click(screen.getByRole('button', { name: /simulate map click/i }))
+    const notes = screen.getByLabelText(/notes/i)
+    expect(isBefore(notes, screen.getByLabelText(/coordinates/i))).toBe(true)
+    expect(isBefore(notes, screen.getByLabelText(/search for a place/i))).toBe(true)
+  })
+
+  it('still keeps them above the list of submitted points', async () => {
+    render(<App />)
+    await signIn()
+    await submitPoint('rice', '2023')
+    expect(
+      isBefore(
+        screen.getByLabelText(/search for a place/i),
+        screen.getByText(/1 point\b/i),
+      ),
+    ).toBe(true)
+  })
+})
+
 describe('App — malformed stored points', () => {
   it('renders without throwing and shows only the valid point when storage has a null entry', () => {
     saveContributor({ name: 'Ryan Askren', email: 'ryanaskren@gmail.com' })
@@ -142,6 +281,7 @@ describe('App — malformed stored points', () => {
       longitude: -91.0,
       landcoverClass: 'rice',
       classOther: null,
+      harvested: 'unknown',
       year: 2023,
       floodable: 'yes',
       confidence: 'certain',

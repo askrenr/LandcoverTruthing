@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import {
+  AG_CLASSES,
   LANDCOVER_CLASSES,
   FLOODABLE_OPTIONS,
   CONFIDENCE_OPTIONS,
+  HARVESTED_OPTIONS,
   YEAR_FLOOR,
   DEFAULT_MAP_VIEW,
   currentYear,
   availableYears,
+  isAgClass,
 } from './config'
 
 describe('config', () => {
@@ -49,10 +52,64 @@ describe('config', () => {
     ])
   })
 
+  it('offers the three harvested options with unknown available', () => {
+    expect(HARVESTED_OPTIONS.map((o) => o.value)).toEqual(['yes', 'no', 'unknown'])
+  })
+
   it('gives every option a human-readable label', () => {
-    for (const option of [...FLOODABLE_OPTIONS, ...CONFIDENCE_OPTIONS]) {
+    for (const option of [
+      ...FLOODABLE_OPTIONS,
+      ...CONFIDENCE_OPTIONS,
+      ...HARVESTED_OPTIONS,
+    ]) {
       expect(option.label.length).toBeGreaterThan(0)
     }
+  })
+})
+
+describe('config — the harvestable classes', () => {
+  it('is a subset of the landcover classes, so no class can be misspelled here', () => {
+    for (const className of AG_CLASSES) {
+      expect(LANDCOVER_CLASSES).toContain(className)
+    }
+  })
+
+  it('covers every planted crop, clean and dirty', () => {
+    expect([...AG_CLASSES]).toEqual([
+      'corn/dirty',
+      'rice/dirty',
+      'other ag/dirty',
+      'corn',
+      'rice',
+      'millet',
+      'milo',
+      'sunflowers',
+    ])
+  })
+
+  // Managed for waterfowl, not taken off the field, so "harvested" has no answer.
+  it('excludes moist-soil', () => {
+    expect(isAgClass('moist-soil')).toBe(false)
+  })
+
+  it('excludes the natural wetland classes and "other"', () => {
+    for (const className of [
+      'floating leaf',
+      'buttonbush',
+      'willow',
+      'persistent emergent',
+      'other',
+    ]) {
+      expect(isAgClass(className)).toBe(false)
+    }
+  })
+
+  it('accepts a crop class', () => {
+    expect(isAgClass('rice/dirty')).toBe(true)
+  })
+
+  it('treats a null class as non-ag rather than throwing', () => {
+    expect(isAgClass(null)).toBe(false)
   })
 
   it('sets the year floor at 2020', () => {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Header from './components/Header'
 import IdentityGate from './components/IdentityGate'
 import MapPanel from './components/MapPanel'
@@ -32,50 +32,75 @@ export default function App() {
   // Carried forward between points: contributors work one year at a time.
   const [lastYear, setLastYear] = useState<number | null>(null)
   const [lastFloodable, setLastFloodable] = useState<PointDraft['floodable']>('unknown')
+  // Guards the automatic location request: once per page load, not once per
+  // render and not again after each submitted point.
+  const autoLocateDone = useRef(false)
 
   useEffect(() => {
     setContributor(loadContributor())
     setPoints(loadPoints())
   }, [])
 
-  function handlePlace(
-    latitude: number,
-    longitude: number,
-    method: PlacementMethod,
-    accuracyM: number | null,
-  ) {
-    setFocus({ lat: latitude, lng: longitude })
-    setDraft((current) =>
-      current
-        ? { ...current, latitude, longitude, placementMethod: method, gpsAccuracyM: accuracyM }
-        : {
-            ...emptyDraft(latitude, longitude, method, accuracyM),
-            year: lastYear,
-            floodable: lastFloodable,
-          },
-    )
-  }
+  const handlePlace = useCallback(
+    (
+      latitude: number,
+      longitude: number,
+      method: PlacementMethod,
+      accuracyM: number | null,
+    ) => {
+      setFocus({ lat: latitude, lng: longitude })
+      setDraft((current) =>
+        current
+          ? { ...current, latitude, longitude, placementMethod: method, gpsAccuracyM: accuracyM }
+          : {
+              ...emptyDraft(latitude, longitude, method, accuracyM),
+              year: lastYear,
+              floodable: lastFloodable,
+            },
+      )
+    },
+    [lastYear, lastFloodable],
+  )
 
-  function handleUseMyLocation() {
-    if (!navigator.geolocation) {
-      setStatus('This browser cannot report your location.')
-      return
-    }
-    setStatus('Finding your location…')
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setStatus('')
-        handlePlace(
-          position.coords.latitude,
-          position.coords.longitude,
-          'device_gps',
-          position.coords.accuracy ?? null,
-        )
-      },
-      () => setStatus('Could not get your location. Check location permissions.'),
-      { enableHighAccuracy: true, timeout: 15000 },
-    )
-  }
+  const requestLocation = useCallback(
+    (auto: boolean) => {
+      if (!navigator.geolocation) {
+        // An automatic attempt stays silent: the contributor did not ask, and
+        // tapping the map still works.
+        if (!auto) setStatus('This browser cannot report your location.')
+        return
+      }
+      setStatus('Finding your location…')
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setStatus('')
+          handlePlace(
+            position.coords.latitude,
+            position.coords.longitude,
+            'device_gps',
+            position.coords.accuracy ?? null,
+          )
+        },
+        () =>
+          setStatus(
+            auto
+              ? 'Location is unavailable — tap the map to place a point instead.'
+              : 'Could not get your location. Check location permissions.',
+          ),
+        { enableHighAccuracy: true, timeout: 15000 },
+      )
+    },
+    [handlePlace],
+  )
+
+  // The phone is the field device, so ask for location the moment there is a
+  // map to put it on. On a granted-permission return visit this drops the pin
+  // where the contributor is standing with no taps at all.
+  useEffect(() => {
+    if (!contributor || editingIdentity || autoLocateDone.current) return
+    autoLocateDone.current = true
+    requestLocation(true)
+  }, [contributor, editingIdentity, requestLocation])
 
   async function handleSubmit() {
     if (!draft || !contributor || submitting) return
@@ -168,13 +193,9 @@ export default function App() {
 
         <aside className="app-sidebar">
           <div className="placement-tools">
-            <button type="button" onClick={handleUseMyLocation}>
+            <button type="button" onClick={() => requestLocation(false)}>
               Use my location
             </button>
-            <CoordinateInput
-              onPlace={(lat, lng) => handlePlace(lat, lng, 'coordinates', null)}
-            />
-            <PlaceSearch onPlace={(lat, lng) => handlePlace(lat, lng, 'search', null)} />
           </div>
 
           {status ? (
@@ -190,6 +211,19 @@ export default function App() {
             onCancel={handleCancel}
             isEditing={editingId !== null}
           />
+
+          {/*
+            Below the form on purpose. On a phone the common path is location
+            or a map tap; coordinates and place search are the fallbacks and
+            would otherwise push the actual questions off the first screen.
+          */}
+          <section className="placement-extras">
+            <h2>Other ways to place a point</h2>
+            <CoordinateInput
+              onPlace={(lat, lng) => handlePlace(lat, lng, 'coordinates', null)}
+            />
+            <PlaceSearch onPlace={(lat, lng) => handlePlace(lat, lng, 'search', null)} />
+          </section>
 
           <SessionList
             points={points}

@@ -1,6 +1,7 @@
 import {
   CONFIDENCE_OPTIONS,
   FLOODABLE_OPTIONS,
+  HARVESTED_OPTIONS,
   LANDCOVER_CLASSES,
   NOTES_MAX_LENGTH,
   OTHER_CLASS,
@@ -20,6 +21,7 @@ const DRAFT_FIELD_ORDER = [
   'location',
   'landcoverClass',
   'classOther',
+  'harvested',
   'year',
   'floodable',
   'confidence',
@@ -39,6 +41,13 @@ export function validateDraft(draft: PointDraft): ValidationResult {
     errors.landcoverClass = 'That landcover class is not recognized.'
   } else if (draft.landcoverClass === OTHER_CLASS && !draft.classOther.trim()) {
     errors.classOther = 'Describe the landcover, since you chose "other".'
+  }
+
+  // Checked for every class, not just the ag ones: a draft always carries a
+  // harvested value, and draftToStoredPoint is what discards it for non-ag
+  // classes. Letting a junk value through here would reach the database.
+  if (!HARVESTED_OPTIONS.some((option) => option.value === draft.harvested)) {
+    errors.harvested = 'Choose whether the crop was harvested.'
   }
 
   if (draft.year === null) {

@@ -14,6 +14,7 @@ create table if not exists public.landcover_points (
   longitude         double precision not null,
   landcover_class   text not null,
   class_other       text,
+  harvested         text,
   year              integer not null,
   floodable         text not null,
   confidence        text not null,
@@ -47,6 +48,19 @@ create table if not exists public.landcover_points (
       and length(trim(class_other)) > 0)
     or
     (landcover_class <> 'other' and class_other is null)
+  ),
+
+  -- Harvest only has an answer for a planted crop. Nullable rather than
+  -- defaulted: rows written before this column existed genuinely do not know,
+  -- and that is different from a contributor answering 'unknown'.
+  constraint harvested_allowed check (
+    harvested is null or harvested in ('yes', 'no', 'unknown')
+  ),
+  constraint harvested_only_for_ag check (
+    harvested is null or landcover_class in (
+      'corn/dirty', 'rice/dirty', 'other ag/dirty',
+      'corn', 'rice', 'millet', 'milo', 'sunflowers'
+    )
   ),
 
   -- Floor only. The current-year ceiling is enforced by a trigger, because

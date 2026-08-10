@@ -1,10 +1,12 @@
 import {
   CONFIDENCE_OPTIONS,
   FLOODABLE_OPTIONS,
+  HARVESTED_OPTIONS,
   LANDCOVER_CLASSES,
   NOTES_MAX_LENGTH,
   OTHER_CLASS,
   availableYears,
+  isAgClass,
 } from '../config'
 import type { LandcoverClass, PointDraft } from '../types'
 import { formatCoordinates } from '../lib/coordinates'
@@ -29,8 +31,8 @@ export default function PointForm({
     return (
       <div className="point-form point-form-empty">
         <p>
-          Place a point to get started — tap the map, use your location, paste
-          coordinates, or search for a place.
+          Place a point to get started — tap the map or use your location.
+          Coordinates and place search are at the bottom of this panel.
         </p>
       </div>
     )
@@ -64,6 +66,9 @@ export default function PointForm({
             landcoverClass: (event.target.value || null) as LandcoverClass | null,
             // Drop stale free text when moving away from "other".
             classOther: event.target.value === OTHER_CLASS ? draft.classOther : '',
+            // Likewise a stale harvest answer when moving to a class that
+            // cannot be harvested, so the hidden field never submits a "yes".
+            harvested: isAgClass(event.target.value) ? draft.harvested : 'unknown',
           })
         }
       >
@@ -84,6 +89,25 @@ export default function PointForm({
             value={draft.classOther}
             onChange={(event) => update({ classOther: event.target.value })}
           />
+        </>
+      ) : null}
+
+      {isAgClass(draft.landcoverClass) ? (
+        <>
+          <label htmlFor="point-harvested">Was the crop harvested?</label>
+          <select
+            id="point-harvested"
+            value={draft.harvested}
+            onChange={(event) =>
+              update({ harvested: event.target.value as PointDraft['harvested'] })
+            }
+          >
+            {HARVESTED_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </>
       ) : null}
 

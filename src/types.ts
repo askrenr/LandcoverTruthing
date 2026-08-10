@@ -1,12 +1,14 @@
 import type {
   CONFIDENCE_OPTIONS,
   FLOODABLE_OPTIONS,
+  HARVESTED_OPTIONS,
   LANDCOVER_CLASSES,
   PLACEMENT_METHODS,
 } from './config'
 
 export type LandcoverClass = (typeof LANDCOVER_CLASSES)[number]
 export type Floodable = (typeof FLOODABLE_OPTIONS)[number]['value']
+export type Harvested = (typeof HARVESTED_OPTIONS)[number]['value']
 export type Confidence = (typeof CONFIDENCE_OPTIONS)[number]['value']
 export type PlacementMethod = (typeof PLACEMENT_METHODS)[number]
 
@@ -21,6 +23,8 @@ export interface PointDraft {
   longitude: number
   landcoverClass: LandcoverClass | null
   classOther: string
+  /** Only meaningful for the AG_CLASSES; ignored and stored null otherwise. */
+  harvested: Harvested
   year: number | null
   floodable: Floodable
   confidence: Confidence
@@ -41,6 +45,8 @@ export interface StoredPoint {
   longitude: number
   landcoverClass: LandcoverClass
   classOther: string | null
+  /** Null for every class outside AG_CLASSES, and on rows predating the field. */
+  harvested: Harvested | null
   year: number
   floodable: Floodable
   confidence: Confidence

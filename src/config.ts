@@ -25,6 +25,35 @@ export const LANDCOVER_CLASSES = [
 /** The only class that reveals a free-text box. */
 export const OTHER_CLASS = 'other'
 
+/**
+ * The classes a harvest question makes sense for: planted crops, clean or dirty.
+ * 'moist-soil' is deliberately absent — it is managed vegetation that is flooded
+ * for waterfowl rather than taken off the field, so "harvested" has no answer.
+ * The natural wetland classes are absent for the same reason.
+ * Adding a class here also needs the harvested_only_for_ag CHECK in
+ * supabase/schema.sql widened to match.
+ */
+export const AG_CLASSES = [
+  'corn/dirty',
+  'rice/dirty',
+  'other ag/dirty',
+  'corn',
+  'rice',
+  'millet',
+  'milo',
+  'sunflowers',
+] as const
+
+export function isAgClass(value: string | null): boolean {
+  return value !== null && (AG_CLASSES as readonly string[]).includes(value)
+}
+
+export const HARVESTED_OPTIONS = [
+  { value: 'yes', label: 'Yes — the crop was harvested' },
+  { value: 'no', label: 'No — it was left standing' },
+  { value: 'unknown', label: "Unknown — I'm not sure" },
+] as const
+
 export const FLOODABLE_OPTIONS = [
   { value: 'yes', label: 'Yes — it can be flooded' },
   { value: 'no', label: 'No — it cannot be flooded' },
