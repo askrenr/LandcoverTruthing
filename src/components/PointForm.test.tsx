@@ -76,6 +76,18 @@ describe('PointForm — fields', () => {
     expect(select.querySelectorAll('option')).toHaveLength(LANDCOVER_CLASSES.length + 1)
   })
 
+  // A count alone cannot say *which* options rendered, so pin the values too.
+  it('renders an option for each class, including the forest classes', () => {
+    renderForm(makeDraft())
+    const select = screen.getByLabelText(/landcover/i)
+    const values = Array.from(select.querySelectorAll('option'))
+      .map((option) => option.getAttribute('value'))
+      .filter((value) => value !== '')
+    expect(values).toEqual([...LANDCOVER_CLASSES])
+    expect(values).toContain('early forest')
+    expect(values).toContain('mature forest')
+  })
+
   it('lists years newest first starting at the current year', () => {
     renderForm(makeDraft())
     const options = screen.getByLabelText(/year/i).querySelectorAll('option')

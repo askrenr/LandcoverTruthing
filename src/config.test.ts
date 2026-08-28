@@ -13,7 +13,7 @@ import {
 } from './config'
 
 describe('config', () => {
-  it('lists the fourteen landcover classes in the agreed order', () => {
+  it('lists the sixteen landcover classes in the agreed order', () => {
     expect(LANDCOVER_CLASSES).toEqual([
       'moist-soil',
       'corn/dirty',
@@ -28,6 +28,8 @@ describe('config', () => {
       'buttonbush',
       'willow',
       'persistent emergent',
+      'early forest',
+      'mature forest',
       'other',
     ])
   })

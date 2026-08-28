@@ -37,6 +37,7 @@ create table if not exists public.landcover_points (
     'moist-soil', 'corn/dirty', 'rice/dirty', 'other ag/dirty',
     'corn', 'rice', 'millet', 'milo', 'sunflowers',
     'floating leaf', 'buttonbush', 'willow', 'persistent emergent',
+    'early forest', 'mature forest',
     'other'
   )),
 

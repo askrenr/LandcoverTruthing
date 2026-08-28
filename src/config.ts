@@ -19,6 +19,9 @@ export const LANDCOVER_CLASSES = [
   'buttonbush',
   'willow',
   'persistent emergent',
+  // Forest, split by successional stage.
+  'early forest',
+  'mature forest',
   'other',
 ] as const
 

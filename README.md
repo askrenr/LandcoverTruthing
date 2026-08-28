@@ -12,7 +12,7 @@ the field the pin lands where they are standing without a single tap. Refusing
 the prompt costs nothing — tapping the map still works, as do the coordinate box
 and place search at the bottom of the panel.
 
-**Intended URL once deployed:** https://askrenr.github.io/LandcoverTruthing/ (not live yet — see Deployment below)
+**Live at:** https://askrenr.github.io/LandcoverTruthing/
 
 ## Design
 
@@ -25,6 +25,8 @@ Planted: `moist-soil`, `corn/dirty`, `rice/dirty`, `other ag/dirty`, `corn`,
 
 Natural wetland vegetation: `floating leaf`, `buttonbush`, `willow`,
 `persistent emergent`.
+
+Forest, by successional stage: `early forest`, `mature forest`.
 
 Plus `other` (free text).
 
@@ -113,3 +115,7 @@ The repo exists and the workflow is in place. A schema change is the one thing
 that does not ride along with a push: run the outstanding file in
 `supabase/migrations/` first, then push, or the newly deployed client writes
 against a column the database does not have yet.
+
+The repo is private while the Pages site is public, which GitHub permits for a
+`build_type=workflow` Pages deployment — changing repo visibility to "fix" this
+is not necessary.
