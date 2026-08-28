@@ -233,16 +233,25 @@ describe('App — sidebar order for one-handed phone entry', () => {
     )
   }
 
-  it('keeps "Use my location" above the questions', async () => {
+  it('leads with Submit so it is reachable without scrolling the questions', async () => {
     render(<App />)
     await signIn()
     await userEvent.click(screen.getByRole('button', { name: /simulate map click/i }))
     expect(
       isBefore(
-        screen.getByRole('button', { name: /use my location/i }),
+        screen.getByRole('button', { name: /submit point/i }),
         screen.getByLabelText(/landcover/i),
       ),
     ).toBe(true)
+  })
+
+  it('puts "Use my location" below the questions, with the other placement tools', async () => {
+    render(<App />)
+    await signIn()
+    await userEvent.click(screen.getByRole('button', { name: /simulate map click/i }))
+    const location = screen.getByRole('button', { name: /use my location/i })
+    expect(isBefore(screen.getByLabelText(/notes/i), location)).toBe(true)
+    expect(isBefore(location, screen.getByLabelText(/coordinates/i))).toBe(true)
   })
 
   it('puts coordinates and place search below the last question', async () => {

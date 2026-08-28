@@ -53,6 +53,25 @@ export default function PointForm({
 
   return (
     <form className="point-form" onSubmit={handleSubmit}>
+      {blockingReason ? (
+        <p id={blockedId} className="form-blocked" role="alert">
+          {blockingReason}
+        </p>
+      ) : null}
+
+      <div className="point-form-actions">
+        <button
+          type="submit"
+          disabled={!result.valid}
+          aria-describedby={blockingReason ? blockedId : undefined}
+        >
+          {isEditing ? 'Save changes' : 'Submit point'}
+        </button>
+        <button type="button" className="secondary" onClick={onCancel}>
+          Cancel
+        </button>
+      </div>
+
       <p className="point-coordinates">
         {formatCoordinates(draft.latitude, draft.longitude)}
       </p>
@@ -170,25 +189,6 @@ export default function PointForm({
         value={draft.notes}
         onChange={(event) => update({ notes: event.target.value })}
       />
-
-      {blockingReason ? (
-        <p id={blockedId} className="form-blocked" role="alert">
-          {blockingReason}
-        </p>
-      ) : null}
-
-      <div className="point-form-actions">
-        <button
-          type="submit"
-          disabled={!result.valid}
-          aria-describedby={blockingReason ? blockedId : undefined}
-        >
-          {isEditing ? 'Save changes' : 'Submit point'}
-        </button>
-        <button type="button" className="secondary" onClick={onCancel}>
-          Cancel
-        </button>
-      </div>
     </form>
   )
 }

@@ -192,12 +192,6 @@ export default function App() {
         />
 
         <aside className="app-sidebar">
-          <div className="placement-tools">
-            <button type="button" onClick={() => requestLocation(false)}>
-              Use my location
-            </button>
-          </div>
-
           {status ? (
             <p className="app-status" role="status">
               {status}
@@ -213,10 +207,17 @@ export default function App() {
           />
 
           {/*
-            Below the form on purpose. On a phone the common path is location
-            or a map tap; coordinates and place search are the fallbacks and
-            would otherwise push the actual questions off the first screen.
+            Placement lives below the form on purpose. The form's actions lead
+            the sidebar so Submit is reachable without scrolling past every
+            question; a map tap is the common way to place a point, and these
+            are the fallbacks for when it is not.
           */}
+          <div className="placement-tools">
+            <button type="button" onClick={() => requestLocation(false)}>
+              Use my location
+            </button>
+          </div>
+
           <section className="placement-extras">
             <h2>Other ways to place a point</h2>
             <CoordinateInput

@@ -133,7 +133,7 @@ button.linklike {
 .placement-tools > button { width: 100%; }
 .attribution { font-size: 0.75rem; color: var(--muted); margin: 0.3rem 0 0; }
 
-.point-form, .placement-extras, .session-list {
+.point-form, .placement-tools, .placement-extras, .session-list {
   margin-top: 1.2rem;
   padding-top: 1.2rem;
   border-top: 1px solid var(--border);
@@ -145,6 +145,15 @@ button.linklike {
   gap: 0.5rem;
   margin-top: 1rem;
   flex-wrap: wrap;
+}
+
+/* The point form's actions lead the form rather than close it, so the 1rem of
+   separation belongs below them instead of above. Not :first-child — the
+   blocking-reason alert renders above them, and the spacing must not depend
+   on whether that alert is showing. */
+.point-form > .point-form-actions {
+  margin-top: 0;
+  margin-bottom: 1rem;
 }
 
 .place-search-results { list-style: none; margin: 0.4rem 0 0; padding: 0; }
