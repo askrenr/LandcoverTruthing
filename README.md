@@ -20,18 +20,29 @@ See [`docs/superpowers/specs/2026-07-30-landcover-truthing-design.md`](docs/supe
 
 ## Landcover classes
 
-Planted: `moist-soil`, `corn/dirty`, `rice/dirty`, `other ag/dirty`, `corn`,
-`rice`, `millet`, `milo`, `sunflowers`.
+Definitions are the project owner's; the dropdown offers exactly these sixteen,
+in this order.
 
-Natural wetland vegetation: `floating leaf`, `buttonbush`, `willow`,
-`persistent emergent`.
+| Class | Definition |
+| --- | --- |
+| `moist-soil` | Vegetation dominated by annual and perennial early successional wetland associated species. These areas should be associated with manipulative or natural annual drawdowns of surface water. |
+| `corn/dirty` | Corn, grown outside of typical agricultural practices (little to no herbicide, often mixed in with other moist-soil plants). |
+| `rice/dirty` | Rice, grown outside of typical agricultural practices (little to no herbicide, often mixed in with other moist-soil plants). |
+| `other ag/dirty` | Other agricultural plants, grown outside of typical agricultural practices (little to no herbicide, often mixed in with other moist-soil plants). |
+| `corn` | Planted corn. |
+| `rice` | Planted rice. |
+| `millet` | Planted, cultivated millets (jap, golden, chiwappa, etc.). |
+| `milo` | Milo. |
+| `sunflowers` | Sunflowers. |
+| `floating leaf` | Permanent wetland / or shallow pond areas dominated by floating vegetation (Lily, Lotus, Duckweed). For context, I would classify much of the Neosho Sanctuary as Floating Leaf. |
+| `buttonbush` | Buttonbush (will likely be clumped with willow as scrub shrub). |
+| `willow` | Willow. |
+| `persistent emergent` | Permanent wetland dominated by perennial emergent aquatic plants (cattail, reed, bulrush, perennial smartweeds, etc.). |
+| `early forest` | Bottomland hardwood forest in mid-successional stages (>scrub shrub, >20 ft tall). |
+| `mature forest` | Forest with mature bottomland tree species. |
+| `other` | Please make notes if you have a cover type that doesn't fit well in these other categories. |
 
-Forest, by successional stage: `early forest`, `mature forest`.
-
-Plus `other` (free text).
-
-"dirty" means the crop was left with a weedy or volunteer understory rather than
-clean-farmed. `floodable` records whether the ground *can* be flooded — the
+`floodable` records whether the ground *can* be flooded — the
 infrastructure — not whether it was flooded when observed.
 
 Years run from 2020 to the current year.
