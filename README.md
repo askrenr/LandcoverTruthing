@@ -12,6 +12,10 @@ the field the pin lands where they are standing without a single tap. Refusing
 the prompt costs nothing — tapping the map still works, as do the coordinate box
 and place search at the bottom of the panel.
 
+A caption in the bottom-left corner of the map gives the capture date of the
+aerial imagery under the map centre, so a contributor can see whether the
+picture is old enough to disagree with the year they are labelling.
+
 **Live at:** https://askrenr.github.io/LandcoverTruthing/
 
 ## Design
@@ -115,6 +119,11 @@ excludes `session_token`, which is a bearer secret.
   the contributor can retry.
 - Place search uses OSM Nominatim, which is rate-limited to roughly one request
   per second and is debounced accordingly.
+- The imagery date comes from Esri's own footprints for the World Imagery
+  basemap and describes the map centre only — the frame can straddle two
+  scenes flown years apart. Below about zoom 12 the basemap is an undated 15 m
+  mosaic, and the caption says so rather than borrowing a date from the
+  high-resolution scene underneath it.
 
 ## Deployment
 

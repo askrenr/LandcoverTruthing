@@ -48,6 +48,36 @@ body {
 .map-panel { flex: 1; min-width: 0; }
 .map-container { height: 100%; width: 100%; }
 
+/*
+  Capture date of the aerial basemap. It sits in a leaflet-bottom/left slot so
+  Leaflet's own stacking keeps it above the tiles and clear of the attribution
+  in the opposite corner. Fixed colours, not the theme tokens: this reads
+  against imagery, which is dark in both colour schemes.
+*/
+.imagery-caption-slot { pointer-events: none; }
+
+.imagery-caption {
+  display: flex;
+  flex-direction: column;
+  margin: 0 0 0.6rem 0.6rem !important;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  background: rgba(20, 22, 26, 0.78);
+  color: #f2f4f7;
+  font-size: 0.72rem;
+  line-height: 1.25;
+  pointer-events: auto;
+}
+
+.imagery-caption-label {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #b9c1cb;
+}
+
+.imagery-caption-value { font-weight: 600; }
+
 .app-sidebar {
   width: var(--sidebar-width);
   flex-shrink: 0;

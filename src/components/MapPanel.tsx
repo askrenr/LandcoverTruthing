@@ -10,6 +10,7 @@ import {
   useMapEvents,
 } from 'react-leaflet'
 import { DEFAULT_MAP_VIEW } from '../config'
+import ImageryCaption from './ImageryCaption'
 import type { PlacementMethod, StoredPoint } from '../types'
 
 interface Props {
@@ -88,6 +89,7 @@ export default function MapPanel({ draftPosition, points, focus, onPlace }: Prop
           </LayersControl.Overlay>
         </LayersControl>
 
+        <ImageryCaption />
         <ClickHandler onPlace={onPlace} />
         <FocusController focus={focus} />
 
